@@ -1,0 +1,51 @@
+# The supplier-dispute constitution from the article.
+version: 1
+
+constraints:
+  - id: risk-tier
+    kind: policy
+    description: Suppliers above risk tier 2 need a formal risk exception.
+    decision_classes: [award_contract]
+    needs: [risk_tier]                 # no evidence => fail closed
+    when: {field: facts.risk_tier, op: ">", value: 2}
+    exception_approver: security_risk_owner
+
+  - id: budget-envelope
+    kind: resource
+    description: Spend above the approved envelope needs a budget variance.
+    decision_classes: [award_contract]
+    when: {field: params.cost, op: ">", value: 500000}
+    exception_approver: finance_director
+
+  - id: customer-commitment
+    kind: priority
+    description: A late delivery breaks the customer commitment and must be renegotiated.
+    decision_classes: [award_contract]
+    when: {field: params.delay_days, op: ">", value: 0}
+    exception_approver: account_owner
+
+  - id: sanctions
+    kind: policy
+    description: Sanctioned suppliers can never be used. No exception path.
+    decision_classes: [award_contract]
+    when: {field: params.sanctioned, op: "==", value: true}
+
+decision_rights:
+  award_contract:
+    rules:
+      - when: {field: params.cost, op: "<=", value: 50000}
+        authority: agent
+    default: {authority: human, approver: procurement_director}
+
+sources:
+  risk_tier:
+    precedence: [grc_system, vendor_questionnaire, agent_inference]
+    max_age_days: 90
+
+breakers:
+  - id: irreversible-high-impact
+    when:
+      all:
+        - {field: reversible, op: "==", value: false}
+        - {field: impact, op: ">", value: 1000000}
+    escalate_to: executive_sponsor

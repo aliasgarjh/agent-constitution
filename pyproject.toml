@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-constitution"
+version = "0.1.0"
+description = "Decision rights and arbitration for multi-agent systems: who decides when agents disagree."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+yaml = ["pyyaml>=6"]
+dev = ["pyyaml>=6", "pytest>=8"]
+langgraph = ["langgraph"]
+
+[tool.setuptools.packages.find]
+include = ["agent_constitution*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
